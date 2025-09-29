@@ -1,0 +1,238 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+type Props = {
+  project: CollectionEntry<"projects">;
+};
+
+const { project } = Astro.props;
+const { data } = project;
+
+// Rearrange images to alternate left and right from the center
+type ImageType = string | { src: string; caption?: string };
+
+function alternateImages(images: ImageType[]) {
+  if (images.length === 0) return [];
+  const result = [images[0]];
+  const left: ImageType[] = [];
+  const right: ImageType[] = [];
+  for (let i = 1; i < images.length; i++) {
+    if (i % 2 === 1) {
+      right.push(images[i]);
+    } else {
+      left.unshift(images[i]);
+    }
+  }
+  return [...left, ...result, ...right];
+}
+
+const images: ImageType[] = alternateImages(data.images);
+const leftCount = Math.floor((data.images.length - 1) / 2);
+const previewImage = images[leftCount];
+---
+
+<li class="mb-4">
+  <div
+    id={"slider-" + project.slug}
+    class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden"
+    data-images={JSON.stringify(images)}
+    data-center-index={leftCount}
+  >
+    <div
+      id={"slides-" + project.slug}
+      class="flex transition-transform flex-row duration-300 h-full mb-2"
+      style="will-change: transform;"
+    >
+      {
+        images.map((image) => (
+          <figure class="relative flex mx-2 hover:opacity-100 transition-opacity duration-300">
+            <img
+              src={typeof image === "string" ? image : image.src}
+              alt={data.title}
+              class="object-contain h-full"
+            />
+            {typeof image !== "string" && image.caption && (
+              <figcaption
+                class="relative ml-2 mt-auto text-s inline-block caption-toggle select-none opacity-40 max-w-30 text-wrap"
+                data-caption={image.caption}
+              >
+                [...]
+              </figcaption>
+            )}
+          </figure>
+        ))
+      }
+    </div>
+    <div
+        class="absolute bottom-0 left-0 w-full h-4 cursor-ns-resize bg-gray-300 opacity-50"
+        id={"resize-handle-" + project.slug} 
+        style="z-index: 10;">
+    </div>
+  </div>
+  <div class="grid grid-cols-6 items-center">
+    <h2 class="uppercase col-span-3">{data.title}</h2>
+    <p class="col-span-2">{data.categories}</p>
+    <p class="text-right">{data.year}</p>
+    <p class="col-span-6 mt-1">{project.body}</p>
+  </div>
+</li>
+
+<script is:inline define:vars={{ project, previewImage }}>
+  document.addEventListener("DOMContentLoaded", () => {
+    const slider = document.getElementById(`slider-${project.slug}`);
+    const slides = document.getElementById(`slides-${project.slug}`);
+    const resizeHandle = document.getElementById(`resize-handle-${project.slug}`);
+
+    if (!slider || !slides || !resizeHandle) return;
+
+    const slideImgs = Array.from(slides.children);
+    const totalImages = slideImgs.length;
+    const centerIndex = parseInt(slider.getAttribute("data-center-index"), 10) || 0;
+    
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+    let index = centerIndex;
+    let expanded = false;
+
+    // --- HELPER FUNCTIONS ---
+
+    function getSide(e) {
+      const rect = slider.getBoundingClientRect();
+      return e.clientX - rect.left < rect.width / 2 ? "left" : "right";
+    }
+
+    function showAllImages(fade = true) {
+        slides.querySelectorAll("figure").forEach((fig, i) => {
+            fig.style.pointerEvents = "auto";
+            if (fade && i !== index) {
+                fig.style.transition = "opacity 0.5s";
+                fig.style.opacity = "0";
+                setTimeout(() => { fig.style.opacity = "1"; }, 10);
+            } else {
+                fig.style.opacity = "1";
+            }
+        });
+        expanded = true;
+    }
+
+    function showPreviewOnly() {
+        slides.querySelectorAll("figure").forEach((fig, i) => {
+            fig.style.pointerEvents = (i === centerIndex) ? "auto" : "none";
+            fig.style.transition = "opacity 0.5s";
+            fig.style.opacity = (i === centerIndex) ? "1" : "0";
+        });
+        expanded = false;
+        index = centerIndex;
+    }
+
+    function resetCaptions() {
+      slides.querySelectorAll("figcaption").forEach((caption) => {
+        caption.textContent = "[...]";
+      });
+    }
+
+    // --- CORE CENTERING LOGIC (FIX #1) --
+    function updateSlider() {
+      if (!slideImgs[index]) return;
+      
+      let offset = 0;
+      for (let i = 0; i < index; i++) {
+        const style = getComputedStyle(slideImgs[i]);
+        offset += slideImgs[i].offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
+      }
+
+      const sliderCenter = slider.offsetWidth / 2;
+      const imgCenter = slideImgs[index].offsetWidth / 2;
+
+      const transformX = sliderCenter - offset - imgCenter;
+      slides.style.transform = `translateX(${transformX}px)`;
+      
+      resetCaptions();
+    }
+
+    // --- EVENT LISTENERS ---
+
+    // RESIZE HANDLING (FIX #2)
+    resizeHandle.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = slider.offsetHeight;
+      document.body.style.cursor = "ns-resize";
+      document.body.style.userSelect = "none";
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isResizing) return;
+      const dy = e.clientY - startY;
+      const newHeight = Math.max(100, Math.min(startHeight + dy, window.innerHeight * 0.5));
+      slider.style.height = `${newHeight}px`;
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateSlider();
+    });
+    resizeObserver.observe(slider);
+
+    // SLIDER INTERACTION
+    slider.addEventListener("click", (e) => {
+        if (!expanded) {
+            showAllImages(true);
+            setTimeout(updateSlider, 50);
+            return;
+        }
+
+        if (e.target.closest('figure')) {
+            const figcaption = e.target.closest('figcaption');
+            if (figcaption) {
+                e.stopPropagation();
+                if (figcaption.textContent === "[...]") {
+                    figcaption.textContent = `[${figcaption.getAttribute("data-caption")}]`;
+                } else {
+                    figcaption.textContent = "[...]";
+                } 
+                return;
+            }
+        }
+
+        if (getSide(e) === "left") {
+            index = (index - 1 + totalImages) % totalImages;
+        } else {
+            index = (index + 1) % totalImages;
+        }
+        updateSlider();
+    });
+
+    // CURSOR MANAGEMENT    
+    slider.addEventListener("mousemove", (e) => {
+        if (!expanded) slider.style.cursor = "crosshair";
+        else slider.style.cursor = getSide(e) === "left" ? "w-resize" : "e-resize";
+    });
+
+    slider.addEventListener("mouseleave", () => {
+        slider.style.cursor = "default";
+    });
+
+    // window.addEventListener("resize", updateSlider);
+
+    document.addEventListener("click", (e) => {
+        if (expanded && !slider.contains(e.target)) {
+            showPreviewOnly();
+            setTimeout(updateSlider, 50);
+        }
+    });
+
+    // INITIALIZATION
+    showPreviewOnly();
+    setTimeout(updateSlider, 0);
+  });
+</script>

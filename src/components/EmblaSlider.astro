@@ -1,0 +1,33 @@
+<!-- ---
+const { images, alt } = Astro.props as { images: string[], alt: string };
+---
+
+<div class="embla" style="height: 18rem;">
+  <div class="embla__viewport overflow-visible h-full">
+    <div class="embla__container flex h-full will-change-transform">
+      {images.map((image) => (
+        <div class="embla__slide flex-shrink-0" style="width: 400px;">
+          <img src={image} alt={alt} class="max-h-64 object-contain w-full" />
+        </div>
+      ))}
+    </div>
+  </div>
+  <button class="embla__prev">Prev</button>
+  <button class="embla__next">Next</button>
+</div>
+
+<script src="https://unpkg.com/embla-carousel/embla-carousel.umd.js"></script>
+<script type="module" is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    var emblaNodes = Array.from(document.querySelectorAll(".embla"));
+    var options = { loop: true, align: 'center' };
+    emblaNodes.forEach(function(emblaNode) {
+      var viewport = emblaNode.querySelector(".embla__viewport");
+      var embla = EmblaCarousel(viewport, options);
+      var prevButton = emblaNode.querySelector(".embla__prev");
+      var nextButton = emblaNode.querySelector(".embla__next");
+      prevButton.addEventListener('click', () => embla.scrollPrev());
+      nextButton.addEventListener('click', () => embla.scrollNext()); 
+    })
+  });
+</script> -->
