@@ -37,19 +37,21 @@ const previewImage = images[leftCount];
     class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden"
     data-images={JSON.stringify(images)}
     data-center-index={leftCount}
+    style="height: 300px;"
   >
     <div
       id={"slides-" + project.slug}
-      class="flex transition-transform flex-row duration-300 h-full mb-2"
-      style="will-change: transform;"
+      class="flex transition-transform flex-row duration-300 h-full mb-2 items-center"
+      style="will-change: transform; transform-origin: center center;"
     >
       {
         images.map((image) => (
-          <figure class="relative flex mx-2 hover:opacity-100 transition-opacity duration-300">
+          <figure class="relative flex mx-2 hover:opacity-100 transition-opacity duration-300 h-full items-center">
             <img
               src={typeof image === "string" ? image : image.src}
               alt={data.title}
-              class="object-contain h-full"
+              class="object-contain h-full w-auto"
+              style="display: block;"
             />
             {typeof image !== "string" && image.caption && (
               <figcaption
@@ -94,6 +96,7 @@ const previewImage = images[leftCount];
     let startHeight = 0;
     let index = centerIndex;
     let expanded = false;
+    let currentTransformX = 0;
 
     // --- HELPER FUNCTIONS ---
 
@@ -132,42 +135,92 @@ const previewImage = images[leftCount];
       });
     }
 
-    // --- CORE CENTERING LOGIC (FIX #1) --
-    function updateSlider() {
-      if (!slideImgs[index]) return;
+    // --- CORE CENTERING LOGIC --
+    // function updateSlider() {
+    //   if (!slideImgs[index]) return;
       
-      let offset = 0;
-      for (let i = 0; i < index; i++) {
-        const style = getComputedStyle(slideImgs[i]);
-        offset += slideImgs[i].offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
-      }
+    //   let offset = 0;
+    //   for (let i = 0; i < index; i++) {
+    //     const style = getComputedStyle(slideImgs[i]);
+    //     offset += slideImgs[i].offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
+    //   }
 
-      const sliderCenter = slider.offsetWidth / 2;
-      const imgCenter = slideImgs[index].offsetWidth / 2;
+    //   const sliderCenter = slider.offsetWidth / 2;
+    //   const imgCenter = slideImgs[index].offsetWidth / 2;
 
-      const transformX = sliderCenter - offset - imgCenter;
-      slides.style.transform = `translateX(${transformX}px)`;
+    //   const transformX = sliderCenter - offset - imgCenter;
+    //   slides.style.transform = `translateX(${transformX}px)`;
       
-      resetCaptions();
+    //   resetCaptions();
+    // }
+
+    function calculateCenterPosition() {
+        if (!slideImgs[index]) return 0;
+
+        let offset = 0;
+        for (let i = 0; i < index; i++) {
+            const fig = slideImgs[i];
+            const img = fig.querySelector("img");
+            if (img) {
+                const imgWidth = img.getBoundingClientRect().width;
+                const style = getComputedStyle(fig);
+                const marginLeft = parseInt(style.marginLeft || 0);
+                const marginRight = parseInt(style.marginRight || 0);
+                offset += imgWidth + marginLeft + marginRight;
+            }
+        }
+
+        const currentImg = slideImgs[index].querySelector("img");
+        if (!currentImg) return 0;
+
+        const sliderCenter = slider.offsetWidth / 2;
+        const imgCenter = currentImg.getBoundingClientRect().width / 2;
+
+        return sliderCenter - offset - imgCenter;
+    }
+
+    function updateSlider(smooth = true) {
+        currentTransformX = calculateCenterPosition();
+
+        if (smooth) {
+            slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+        } else {
+            slides.style.transition = "none";
+        }
+
+        slides.style.transform = `translateX(${currentTransformX}px)`;
+
+        resetCaptions();
     }
 
     // --- EVENT LISTENERS ---
 
-    // RESIZE HANDLING (FIX #2)
+    // --- RESIZE HANDLING WITH SMOOTH CENTERING ---
     resizeHandle.addEventListener("mousedown", (e) => {
       isResizing = true;
       startY = e.clientY;
       startHeight = slider.offsetHeight;
       document.body.style.cursor = "ns-resize";
       document.body.style.userSelect = "none";
+      
+      slides.style.transition = "none";
+      
       e.preventDefault();
     });
 
     document.addEventListener("mousemove", (e) => {
       if (!isResizing) return;
+      
       const dy = e.clientY - startY;
       const newHeight = Math.max(100, Math.min(startHeight + dy, window.innerHeight * 0.5));
+      
+      const scaleRatio = newHeight / slider.offsetHeight;
+      
       slider.style.height = `${newHeight}px`;
+
+      requestAnimationFrame(() => {
+        updateSlider(false);
+      })
     });
 
     document.addEventListener("mouseup", () => {
@@ -175,11 +228,21 @@ const previewImage = images[leftCount];
         isResizing = false;
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
+
+        slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+
+        setTimeout(() => updateSlider(true), 10);
       }
     });
 
+    let resizeTimeout;
     const resizeObserver = new ResizeObserver(() => {
-      updateSlider();
+        if (!isResizing) {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateSlider(false);
+            }, 16);
+        }
     });
     resizeObserver.observe(slider);
 
@@ -187,7 +250,7 @@ const previewImage = images[leftCount];
     slider.addEventListener("click", (e) => {
         if (!expanded) {
             showAllImages(true);
-            setTimeout(updateSlider, 50);
+            setTimeout(() => updateSlider(true), 50);
             return;
         }
 
@@ -222,17 +285,25 @@ const previewImage = images[leftCount];
         slider.style.cursor = "default";
     });
 
-    // window.addEventListener("resize", updateSlider);
+    let windowResizeTimeout;
+    window.addEventListener("resize", () => {
+        clearTimeout(windowResizeTimeout);
+        windowResizeTimeout = setTimeout(() => {
+            updateSlider(false);
+        }, 100);
+    });
 
     document.addEventListener("click", (e) => {
         if (expanded && !slider.contains(e.target)) {
             showPreviewOnly();
-            setTimeout(updateSlider, 50);
+            setTimeout(() => updateSlider(true), 50);
         }
     });
 
     // INITIALIZATION
     showPreviewOnly();
-    setTimeout(updateSlider, 0);
+    requestAnimationFrame(() => {
+        updateSlider(false);
+    });
   });
 </script>
