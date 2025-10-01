@@ -34,39 +34,41 @@ const previewImage = images[leftCount];
 <li class="mb-4">
   <div
     id={"slider-" + project.slug}
-    class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden"
+    class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden flex"
     data-images={JSON.stringify(images)}
     data-center-index={leftCount}
     style="height: 300px;"
   >
-    <div
-      id={"slides-" + project.slug}
-      class="flex transition-transform flex-row duration-300 h-full mb-2 items-center"
-      style="will-change: transform; transform-origin: center center;"
-    >
-      {
-        images.map((image) => (
-          <figure class="relative flex mx-2 hover:opacity-100 transition-opacity duration-300 h-full items-center">
-            <img
-              src={typeof image === "string" ? image : image.src}
-              alt={data.title}
-              class="object-contain h-full w-auto"
-              style="display: block;"
-            />
-            {typeof image !== "string" && image.caption && (
-              <figcaption
-                class="relative ml-2 mt-auto text-s inline-block caption-toggle select-none opacity-40 max-w-30 text-wrap"
-                data-caption={image.caption}
-              >
-                [...]
-              </figcaption>
-            )}
-          </figure>
-        ))
-      }
+    <div class="h-full">
+      <div
+        id={"slides-" + project.slug}
+        class="flex flex-row h-full items-center"
+        style="will-change: transform; transform-origin: center center;"
+      >
+        {
+          images.map((image) => (
+            <figure class="relative flex mx-2 transition-opacity duration-300 h-full shrink-0">
+              <img
+                src={typeof image === "string" ? image : image.src}
+                alt={data.title}
+                class="object-contain h-full"
+                style="display: block;"
+              />
+              {typeof image !== "string" && image.caption && (
+                <figcaption
+                  class="relative ml-2 mt-auto text-s inline-block caption-toggle select-none opacity-40 max-w-30 text-wrap"
+                  data-caption={image.caption}
+                >
+                  [...]
+                </figcaption>
+              )}
+            </figure>
+          ))
+        }
+      </div>
     </div>
     <div
-        class="absolute bottom-0 left-0 w-full h-4 cursor-ns-resize bg-gray-300 opacity-50"
+        class="absolute bottom-0 left-1/2 right-1/2 w-10 -translate-x-1/2 h-1 cursor-ns-resize bg-gray-300 opacity-50"
         id={"resize-handle-" + project.slug} 
         style="z-index: 10;">
     </div>
@@ -97,6 +99,7 @@ const previewImage = images[leftCount];
     let index = centerIndex;
     let expanded = false;
     let currentTransformX = 0;
+    let justFinishedResizing = false;
 
     // --- HELPER FUNCTIONS ---
 
@@ -136,23 +139,6 @@ const previewImage = images[leftCount];
     }
 
     // --- CORE CENTERING LOGIC --
-    // function updateSlider() {
-    //   if (!slideImgs[index]) return;
-      
-    //   let offset = 0;
-    //   for (let i = 0; i < index; i++) {
-    //     const style = getComputedStyle(slideImgs[i]);
-    //     offset += slideImgs[i].offsetWidth + parseInt(style.marginLeft || 0) + parseInt(style.marginRight || 0);
-    //   }
-
-    //   const sliderCenter = slider.offsetWidth / 2;
-    //   const imgCenter = slideImgs[index].offsetWidth / 2;
-
-    //   const transformX = sliderCenter - offset - imgCenter;
-    //   slides.style.transform = `translateX(${transformX}px)`;
-      
-    //   resetCaptions();
-    // }
 
     function calculateCenterPosition() {
         if (!slideImgs[index]) return 0;
@@ -181,7 +167,7 @@ const previewImage = images[leftCount];
 
     function updateSlider(smooth = true) {
         currentTransformX = calculateCenterPosition();
-
+        
         if (smooth) {
             slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
         } else {
@@ -229,6 +215,9 @@ const previewImage = images[leftCount];
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
 
+        justFinishedResizing = true;
+        setTimeout(() => { justFinishedResizing = false; }, 100);
+
         slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
 
         setTimeout(() => updateSlider(true), 10);
@@ -248,6 +237,10 @@ const previewImage = images[leftCount];
 
     // SLIDER INTERACTION
     slider.addEventListener("click", (e) => {
+        if (justFinishedResizing) {
+          return;
+        }
+
         if (!expanded) {
             showAllImages(true);
             setTimeout(() => updateSlider(true), 50);

@@ -8,9 +8,14 @@
   display: flex;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 .slider {
   transform-origin: center;
   transition: transform 0.3s;
+  position: relative;
 }
 
 figure {
