@@ -31,13 +31,13 @@ const leftCount = Math.floor((data.images.length - 1) / 2);
 const previewImage = images[leftCount];
 ---
 
-<li class="mb-4">
+<li class="mb-6">
   <div
     id={"slider-" + project.slug}
     class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden flex"
     data-images={JSON.stringify(images)}
     data-center-index={leftCount}
-    style="height: 300px;"
+    style="height: 25vh;"
   >
     <div class="h-full">
       <div
@@ -47,7 +47,10 @@ const previewImage = images[leftCount];
       >
         {
           images.map((image, i) => (
-            <figure class:list={["relative flex mx-2 transition-opacity duration-300 h-full shrink-0", i === leftCount ? "preview-slide" : "initial-hide"]}>
+            <figure 
+              class="relative flex mx-2 transition-opacity duration-300 h-full shrink-0"
+              style={i !== leftCount ? "opacity: 0; pointer-events: none;" : "opacity: 1;"}
+            >
               <img
                 src={typeof image === "string" ? image : image.src}
                 alt={data.title}
@@ -67,11 +70,12 @@ const previewImage = images[leftCount];
         }
       </div>
     </div>
-    <div
-        class="absolute -bottom-0 left-1/2 right-1/2 w-10 -translate-x-1/2 h-1 cursor-ns-resize bg-gray-400 opacity-50"
-        id={"resize-handle-" + project.slug} 
-        style="z-index: 10;">
-    </div>
+  </div>
+  <div
+      class="w-screen relative inset-x-1/2 mx-[-50vw] py-2 cursor-ns-resize flex items-center justify-center group"
+      id={"resize-handle-" + project.slug} 
+      style="z-index: 10;">
+      <div class="w-16 h-1 bg-gray-300 group-hover:bg-gray-500 rounded-full transition-all duration-200 group-hover:h-1.5"></div>
   </div>
   <div class="grid grid-cols-6 items-center">
     <h2 class="uppercase col-span-3 project-title">{data.title}</h2>
@@ -206,9 +210,10 @@ const previewImage = images[leftCount];
       if (!isResizing) return;
       
       const dy = e.clientY - startY;
-      const newHeight = Math.max(100, Math.min(startHeight + dy, window.innerHeight * 0.5));
       
-      const scaleRatio = newHeight / slider.offsetHeight;
+      const minHeight = 100;
+      const maxHeight = window.innerHeight * 0.5;
+      const newHeight = Math.max(minHeight, Math.min(startHeight + dy, maxHeight));
       
       slider.style.height = `${newHeight}px`;
 
@@ -303,10 +308,8 @@ const previewImage = images[leftCount];
 
     window.addEventListener("sliderSizeChange", (event) => {
       const newHeight = event.detail.height;
-      console.log("Received sliderSizeChange event:", event.detail);
       if (slider && typeof newHeight === "number") {
         slider.style.height = `${newHeight}px`;
-        console.log("Slider height changed to:", newHeight);
         setTimeout(() => {
           requestAnimationFrame(() => updateSlider(false));
         }, 500);
