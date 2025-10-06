@@ -1,21 +1,27 @@
 @import "tailwindcss";
 
-[data-project] [data-expanded] > div {
-  display: none;
-}
-
-[data-project][data-open] [data-expanded] > div {
-  display: flex;
-}
-
 body {
   overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a:hover {
+  color: grey;
 }
 
 .slider {
   transform-origin: center;
   transition: transform 0.3s;
   position: relative;
+}
+
+.slider .initial-hide {
+  opacity: 0;
+  pointer-events: none;
 }
 
 figure {

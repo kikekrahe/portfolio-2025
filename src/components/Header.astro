@@ -2,11 +2,57 @@
 
 ---
 
-<div>
-    <p>Enrique Krahe</p>
-    <p>Graphic designer based in madrid.</p>
+<div class="relative flex flex-col gap-4">
+    <div>
+        <p>Enrique Krahe</p>
+        <p>Graphic designer based in Madrid.</p>
+    </div>
+    <div>
+        <p class="text-xs">Contact</p>
+        <p><a href="https://www.instagram.com/enrikrahe/">@enrikrahe</a></p>
+        <p><a href="mailto:enrique-krahe@proton.me">enrique-krahe@proton.me</a></p>
+    </div>
+    <div>
+        <p class="text-xs">Clients</p>
+        <ul>
+            <li>
+                <a href="">DAZZZED Studio</a>
+            </li>
+            <li>
+                <a href="">Willem de Kooning Academy</a>
+            </li>
+        </ul>
+        <div>
+            <button id="size-toggle" class="absolute right-0 bottom-0 hover:opacity-60 transition-opacity">M</button>
+        </div>
+    </div>
 </div>
-<div>
-    <p><a href="">@enrikrahe</a></p>
-    <p><a href="">kikekrahe[at]gmail.com</a></p>
-</div>
+
+<script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+        const sizeButton = document.getElementById("size-toggle");
+        const sizes = ["S", "M", "L", "XL"];
+        const sizeHeights = {
+            "S": 150,
+            "M": 300,
+            "L": 450,
+            "XL": 550
+        };
+
+        let currentSizeIndex = 1;
+
+        sizeButton?.addEventListener("click", (e) => {
+            e.preventDefault();
+            currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+            const newSize = sizes[currentSizeIndex];
+            sizeButton.textContent = newSize;
+
+            window.dispatchEvent(new CustomEvent("sliderSizeChange", {
+                detail: {
+                    size: newSize,
+                    height: sizeHeights[newSize]
+                }
+            }));
+        });
+    });
+</script>

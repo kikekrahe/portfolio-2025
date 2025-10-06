@@ -46,8 +46,8 @@ const previewImage = images[leftCount];
         style="will-change: transform; transform-origin: center center;"
       >
         {
-          images.map((image) => (
-            <figure class="relative flex mx-2 transition-opacity duration-300 h-full shrink-0">
+          images.map((image, i) => (
+            <figure class:list={["relative flex mx-2 transition-opacity duration-300 h-full shrink-0", i === leftCount ? "preview-slide" : "initial-hide"]}>
               <img
                 src={typeof image === "string" ? image : image.src}
                 alt={data.title}
@@ -68,13 +68,13 @@ const previewImage = images[leftCount];
       </div>
     </div>
     <div
-        class="absolute bottom-0 left-1/2 right-1/2 w-10 -translate-x-1/2 h-1 cursor-ns-resize bg-gray-300 opacity-50"
+        class="absolute -bottom-0 left-1/2 right-1/2 w-10 -translate-x-1/2 h-1 cursor-ns-resize bg-gray-400 opacity-50"
         id={"resize-handle-" + project.slug} 
         style="z-index: 10;">
     </div>
   </div>
   <div class="grid grid-cols-6 items-center">
-    <h2 class="uppercase col-span-3">{data.title}</h2>
+    <h2 class="uppercase col-span-3 project-title">{data.title}</h2>
     <p class="col-span-2">{data.categories}</p>
     <p class="text-right">{data.year}</p>
     <p class="col-span-6 mt-1">{project.body}</p>
@@ -122,11 +122,19 @@ const previewImage = images[leftCount];
         expanded = true;
     }
 
-    function showPreviewOnly() {
+    function showPreviewOnly(instant = false) {
         slides.querySelectorAll("figure").forEach((fig, i) => {
-            fig.style.pointerEvents = (i === centerIndex) ? "auto" : "none";
+          if (instant) {
+            fig.style.transition = "none";
+          } else {
             fig.style.transition = "opacity 0.5s";
-            fig.style.opacity = (i === centerIndex) ? "1" : "0";
+          }
+          fig.style.pointerEvents = (i === centerIndex) ? "auto" : "none";
+          fig.style.opacity = (i === centerIndex) ? "1" : "0";
+          if (instant) {
+            setTimeout(() => { fig.style.transition = "opacity 0.5s";
+            }, 50);
+          }
         });
         expanded = false;
         index = centerIndex;
@@ -293,8 +301,20 @@ const previewImage = images[leftCount];
         }
     });
 
+    window.addEventListener("sliderSizeChange", (event) => {
+      const newHeight = event.detail.height;
+      console.log("Received sliderSizeChange event:", event.detail);
+      if (slider && typeof newHeight === "number") {
+        slider.style.height = `${newHeight}px`;
+        console.log("Slider height changed to:", newHeight);
+        setTimeout(() => {
+          requestAnimationFrame(() => updateSlider(false));
+        }, 500);
+      }
+    })
+
     // INITIALIZATION
-    showPreviewOnly();
+    showPreviewOnly(true);
     requestAnimationFrame(() => {
         updateSlider(false);
     });
