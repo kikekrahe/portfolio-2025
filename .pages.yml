@@ -1,1 +1,41 @@
 media: public
+content: 
+  - name: projects
+    label: Projects
+    type: collection
+    path: src/content/projects
+    filename: '{fields.title}.md'
+    fields: 
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: categories
+        label: Categories
+        type: string
+        required: true
+      - name: year
+        label: Year
+        type: number
+        required: true
+      - name: mediaItems
+        label: Media Items
+        type: object
+        fields: 
+          - name: type
+            label: Type
+            type: select
+            options: 
+              values: [Image, Video]
+            default: Image
+          - name: src
+            label: Source
+            type: file
+            required: true
+          - name: caption
+            label: Caption
+            type: string
+      - name: body
+        label: Body
+        type: rich-text
+        required: true
