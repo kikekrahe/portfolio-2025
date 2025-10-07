@@ -1,5 +1,5 @@
 media: 
-  input: public/media
+  input: src/media
   output: /media
   extensions: 
     - jpg
