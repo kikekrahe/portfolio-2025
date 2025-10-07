@@ -78,7 +78,7 @@ const previewImage = images[leftCount];
       <div class="w-16 h-1 bg-gray-300 group-hover:bg-gray-500 rounded-full transition-all duration-200 group-hover:h-1.5"></div>
   </div>
   <div class="grid grid-cols-6 items-center">
-    <h2 class="uppercase col-span-3 project-title">{data.title}</h2>
+    <h2 class="uppercase col-span-3">{data.title}</h2>
     <p class="col-span-2">{data.categories}</p>
     <p class="text-right">{data.year}</p>
     <p class="col-span-6 mt-1">{project.body}</p>
@@ -104,6 +104,7 @@ const previewImage = images[leftCount];
     let expanded = false;
     let currentTransformX = 0;
     let justFinishedResizing = false;
+    let isProgrammaticResize = false;
 
     // --- HELPER FUNCTIONS ---
 
@@ -126,19 +127,13 @@ const previewImage = images[leftCount];
         expanded = true;
     }
 
-    function showPreviewOnly(instant = false) {
+    function showPreviewOnly(animate = true) {
         slides.querySelectorAll("figure").forEach((fig, i) => {
-          if (instant) {
-            fig.style.transition = "none";
-          } else {
-            fig.style.transition = "opacity 0.5s";
-          }
-          fig.style.pointerEvents = (i === centerIndex) ? "auto" : "none";
-          fig.style.opacity = (i === centerIndex) ? "1" : "0";
-          if (instant) {
-            setTimeout(() => { fig.style.transition = "opacity 0.5s";
-            }, 50);
-          }
+            fig.style.pointerEvents = (i === centerIndex) ? "auto" : "none";
+            if (animate) {
+                fig.style.transition = "opacity 0.5s";
+            }
+            fig.style.opacity = (i === centerIndex) ? "1" : "0";
         });
         expanded = false;
         index = centerIndex;
@@ -150,7 +145,7 @@ const previewImage = images[leftCount];
       });
     }
 
-    // --- CORE CENTERING LOGIC --
+    // --- CORE CENTERING LOGIC ---
 
     function calculateCenterPosition() {
         if (!slideImgs[index]) return 0;
@@ -180,7 +175,10 @@ const previewImage = images[leftCount];
     function updateSlider(smooth = true) {
         currentTransformX = calculateCenterPosition();
         
-        if (smooth) {
+        // Disable transitions during programmatic resize to prevent flicker
+        if (isProgrammaticResize) {
+            slides.style.transition = "none";
+        } else if (smooth) {
             slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
         } else {
             slides.style.transition = "none";
@@ -193,7 +191,7 @@ const previewImage = images[leftCount];
 
     // --- EVENT LISTENERS ---
 
-    // --- RESIZE HANDLING WITH SMOOTH CENTERING ---
+    // RESIZE HANDLING WITH SMOOTH CENTERING
     resizeHandle.addEventListener("mousedown", (e) => {
       isResizing = true;
       startY = e.clientY;
@@ -210,16 +208,18 @@ const previewImage = images[leftCount];
       if (!isResizing) return;
       
       const dy = e.clientY - startY;
+      const vh = window.innerHeight;
       
-      const minHeight = 100;
-      const maxHeight = window.innerHeight * 0.5;
+      // Use consistent viewport-based limits
+      const minHeight = vh * 0.15; // ~S size
+      const maxHeight = vh * 0.50; // Slightly above XL
       const newHeight = Math.max(minHeight, Math.min(startHeight + dy, maxHeight));
       
       slider.style.height = `${newHeight}px`;
 
       requestAnimationFrame(() => {
         updateSlider(false);
-      })
+      });
     });
 
     document.addEventListener("mouseup", () => {
@@ -239,7 +239,8 @@ const previewImage = images[leftCount];
 
     let resizeTimeout;
     const resizeObserver = new ResizeObserver(() => {
-        if (!isResizing) {
+        // Skip updates during manual or programmatic resize
+        if (!isResizing && !isProgrammaticResize) {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 updateSlider(false);
@@ -278,7 +279,7 @@ const previewImage = images[leftCount];
         } else {
             index = (index + 1) % totalImages;
         }
-        updateSlider();
+        updateSlider(true);
     });
 
     // CURSOR MANAGEMENT    
@@ -301,23 +302,50 @@ const previewImage = images[leftCount];
 
     document.addEventListener("click", (e) => {
         if (expanded && !slider.contains(e.target)) {
-            showPreviewOnly();
+            showPreviewOnly(true);
             setTimeout(() => updateSlider(true), 50);
         }
     });
 
-    window.addEventListener("sliderSizeChange", (event) => {
-      const newHeight = event.detail.height;
-      if (slider && typeof newHeight === "number") {
+    // Listen for global size changes with proper transition handling
+    window.addEventListener("sliderSizeChange", (e) => {
+        const newHeight = e.detail.height;
+        
+        // Set flag to prevent flicker
+        isProgrammaticResize = true;
+        
+        // Disable transform transitions during height animation
+        slides.style.transition = "none";
+        
+        // Apply smooth height transition
+        slider.style.transition = "height 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
         slider.style.height = `${newHeight}px`;
-        setTimeout(() => {
-          requestAnimationFrame(() => updateSlider(false));
-        }, 500);
-      }
-    })
+        
+        // Continuously update position during height animation
+        let animationFrameId;
+        let startTime = Date.now();
+        const animationDuration = 300;
+        
+        const updateDuringAnimation = () => {
+            updateSlider(false);
+            
+            // Continue updating until animation is complete
+            if (Date.now() - startTime < animationDuration) {
+                animationFrameId = requestAnimationFrame(updateDuringAnimation);
+            } else {
+                // Animation complete, cleanup
+                isProgrammaticResize = false;
+                slider.style.transition = "";
+                slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+                cancelAnimationFrame(animationFrameId);
+            }
+        };
+        
+        // Start the update loop
+        requestAnimationFrame(updateDuringAnimation);
+    });
 
     // INITIALIZATION
-    showPreviewOnly(true);
     requestAnimationFrame(() => {
         updateSlider(false);
     });

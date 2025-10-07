@@ -23,7 +23,7 @@
             </li>
         </ul>
         <div>
-            <button id="size-toggle" class="absolute right-0 bottom-0 hover:opacity-60 transition-opacity">M</button>
+            <button id="size-toggle" class="absolute right-0 bottom-0 hover:opacity-60 transition-opacity cursor-pointer">M</button>
         </div>
     </div>
 </div>
@@ -33,10 +33,10 @@
         const sizeButton = document.getElementById("size-toggle");
         const sizes = ["S", "M", "L", "XL"];
         const sizeHeights = {
-            "S": 150,
+            "S": 180,
             "M": 300,
             "L": 450,
-            "XL": 550
+            "XL": 580
         };
 
         let currentSizeIndex = 1;
