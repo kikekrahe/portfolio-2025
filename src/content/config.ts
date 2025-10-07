@@ -3,6 +3,7 @@ import { defineCollection, z } from 'astro:content';
 const imageSchema = z.union([
     z.string(),
     z.object({
+        type: z.string(),
         src: z.string(),
         caption: z.string().optional(),
     }),

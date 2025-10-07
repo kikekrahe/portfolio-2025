@@ -9,7 +9,7 @@ const { project } = Astro.props;
 const { data } = project;
 
 // Rearrange images to alternate left and right from the center
-type ImageType = string | { src: string; caption?: string };
+type ImageType = string | { type?: string; src: string; caption?: string };
 
 function alternateImages(images: ImageType[]) {
   if (images.length === 0) return [];
@@ -26,7 +26,7 @@ function alternateImages(images: ImageType[]) {
   return [...left, ...result, ...right];
 }
 
-const images: ImageType[] = alternateImages(data.images);
+const images: (string | { src: string; caption?: string; type?: string })[] = alternateImages(data.images || []);
 const leftCount = Math.floor((data.images.length - 1) / 2);
 const previewImage = images[leftCount];
 ---
@@ -51,12 +51,26 @@ const previewImage = images[leftCount];
               class="relative flex mx-2 transition-opacity duration-300 h-full shrink-0"
               style={i !== leftCount ? "opacity: 0; pointer-events: none;" : "opacity: 1;"}
             >
-              <img
-                src={typeof image === "string" ? image : image.src}
-                alt={data.title}
-                class="object-contain h-full"
-                style="display: block;"
-              />
+              {typeof image !== "string" && image.type === "video" ? (
+                <video
+                  src={typeof image === "string" ? image : image.src}
+                  muted
+                  autoplay
+                  loop
+                  playsinline
+                  preload="metadata"
+                  class="object-contain h-full"
+                  style="display: block;"
+                ></video>
+              ) : (
+                <img
+                  src={typeof image === "string" ? image : image.src}
+                  alt={data.title}
+                  class="object-contain h-full"
+                  style="display: block;"
+                />
+              )}
+              
               {typeof image !== "string" && image.caption && (
                 <figcaption
                   class="relative ml-2 mt-auto text-s inline-block caption-toggle select-none opacity-40 max-w-30 text-wrap"
@@ -153,23 +167,23 @@ const previewImage = images[leftCount];
         let offset = 0;
         for (let i = 0; i < index; i++) {
             const fig = slideImgs[i];
-            const img = fig.querySelector("img");
-            if (img) {
-                const imgWidth = img.getBoundingClientRect().width;
+            const media = fig.querySelector("img, video");
+            if (media) {
+                const mediaWidth = media.getBoundingClientRect().width;
                 const style = getComputedStyle(fig);
                 const marginLeft = parseInt(style.marginLeft || 0);
                 const marginRight = parseInt(style.marginRight || 0);
-                offset += imgWidth + marginLeft + marginRight;
+                offset += mediaWidth + marginLeft + marginRight;
             }
         }
 
-        const currentImg = slideImgs[index].querySelector("img");
-        if (!currentImg) return 0;
+        const currentMedia = slideImgs[index].querySelector("img, video");
+        if (!currentMedia) return 0;
 
         const sliderCenter = slider.offsetWidth / 2;
-        const imgCenter = currentImg.getBoundingClientRect().width / 2;
+        const mediaCenter = currentMedia.getBoundingClientRect().width / 2;
 
-        return sliderCenter - offset - imgCenter;
+        return sliderCenter - offset - mediaCenter;
     }
 
     function updateSlider(smooth = true) {
@@ -187,6 +201,14 @@ const previewImage = images[leftCount];
         slides.style.transform = `translateX(${currentTransformX}px)`;
 
         resetCaptions();
+
+        slideImgs.forEach((fig, i) => {
+          const vid = fig.querySelector("video");
+          if (vid) {
+            if (i === index) vid.play().catch(() => {});
+            else vid.pause();
+          }
+        });
     }
 
     // --- EVENT LISTENERS ---
