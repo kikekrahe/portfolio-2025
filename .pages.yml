@@ -10,17 +10,21 @@ content:
         label: Title
         type: string
         required: true
+      
       - name: categories
         label: Categories
         type: string
         required: true
+      
       - name: year
         label: Year
         type: number
         required: true
+      
       - name: mediaItems
         label: Media Items
         type: object
+        list: true
         fields: 
           - name: type
             label: Type
@@ -28,13 +32,16 @@ content:
             options: 
               values: [Image, Video]
             default: Image
+          
           - name: src
             label: Source
             type: file
             required: true
+          
           - name: caption
             label: Caption
             type: string
+      
       - name: body
         label: Body
         type: rich-text
