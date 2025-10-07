@@ -4,7 +4,7 @@ categories: Research
 year: 2024
 mediaItems:
   - type: Image
-    src: /public/tbadoai_gif-ezgif.com-gif-to-mp4-converter-2.mp4
+    src: /public/tbadoai_gif-ezgif.com-gif-to-mp4-converter-2-2.mp4
   - type: Image
     src: /public/tbadoai_001.jpeg
   - type: Image
