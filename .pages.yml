@@ -1,4 +1,17 @@
-media: public
+media: 
+  input: public/media
+  output: /media
+  extensions: 
+    - jpg
+    - jpeg
+    - avif
+    - png
+    - gif
+    - webp
+    - mp4
+    - mov
+    - webm
+
 content: 
   - name: projects
     label: Projects
