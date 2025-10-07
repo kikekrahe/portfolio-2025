@@ -26,8 +26,8 @@ function alternateImages(images: ImageType[]) {
   return [...left, ...result, ...right];
 }
 
-const images: (string | { src: string; caption?: string; type?: string })[] = alternateImages(data.images || []);
-const leftCount = Math.floor((data.images.length - 1) / 2);
+const images: (string | { src: string; caption?: string; type?: string })[] = alternateImages(data.mediaItems || []);
+const leftCount = Math.floor((images.length - 1) / 2);
 const previewImage = images[leftCount];
 ---
 
