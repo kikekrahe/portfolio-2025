@@ -25,6 +25,7 @@ content:
         label: Media Items
         type: object
         list: true
+        required: true
         fields: 
           - name: type
             label: Type
