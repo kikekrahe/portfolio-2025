@@ -4,9 +4,9 @@ categories: Publication
 year: 2024
 mediaItems:
   - type: Image
-    src: /public/algia_0004-1200w.avif
-  - type: Image
     src: /public/algia_0001-1200w.avif
+  - type: Image
+    src: /public/algia_0004-1200w.avif
   - type: Image
     src: /public/algia_0002-1200w.avif
   - type: Image
