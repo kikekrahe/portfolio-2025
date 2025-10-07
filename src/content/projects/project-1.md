@@ -1,20 +1,19 @@
 ---
-title: "My Cool Project"
-categories: "Interactive installation"
+title: Alg.ia
+categories: Publication
 year: 2024
-images: 
-    - type: "image"
-      src: "/projects/project-1.jpeg"
-      caption: "© Cillum cillum laborum esse excepteur."
-    - type: "image"
-      src: "/projects/project-2.png"
-    - type: "image"
-      src: "/projects/project-3.png"
-    - type: "image"
-      src: "/projects/project-3.png"
-    - type: "image"
-      src: "/projects/project-3.png"
-collaborators: ["John Doe", "Jane Smith"]
+mediaItems:
+  - type: Image
+    src: /public/algia_0004-1200w.avif
+  - type: Image
+    src: /public/algia_0001-1200w.avif
+  - type: Image
+    src: /public/algia_0002-1200w.avif
+  - type: Image
+    src: /public/algia_0003-1200w.avif
+  - type: Image
+    src: /public/algia_0005-1200w.avif
+  - type: Image
+    src: /public/algia_gif.gif
 ---
-
-A longer description goes here. You can write markdown content about the process, tools used, or anything you want inside the expanded view.
+What remains when nostalgia is not human anymore? "alg.ia" is an experimental publication on acrylic exploring the distancing of memories and nostalgic tendencies when Artificial Intelligent systems come in the mix.
