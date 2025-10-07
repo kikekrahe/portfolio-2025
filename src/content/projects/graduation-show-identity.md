@@ -11,7 +11,7 @@ mediaItems:
   - type: Image
     src: /public/gradshow_02-2000w.avif
   - type: Image
-    src: /public/gradshow_09.mp4
+    src: /public/gradshow_09-ezgif.com-gif-maker.mp4
   - type: Image
     src: /public/gradshow_03-2000w.avif
   - type: Image
