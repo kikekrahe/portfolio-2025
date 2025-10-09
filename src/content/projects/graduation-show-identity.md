@@ -10,7 +10,7 @@ mediaItems:
     src: /src/media/projects/gradshow_08.mp4
   - type: Image
     src: /src/media/projects/gradshow_02-2000w.avif
-  - type: Image
+  - type: Video
     src: /src/media/projects/gradshow_09-ezgif.com-gif-maker.mp4
   - type: Image
     src: /src/media/projects/gradshow_03-2000w.avif

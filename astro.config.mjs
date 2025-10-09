@@ -7,6 +7,10 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
+  image: {
+    responsiveStyles: true,
+    layout: 'constrained'
+  },
   vite: {
     plugins: [tailwindcss()]
   },

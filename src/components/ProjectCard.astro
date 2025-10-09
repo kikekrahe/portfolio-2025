@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 
 type Props = {
   project: CollectionEntry<"projects">;
@@ -29,13 +30,48 @@ function alternateImages(images: ImageType[]) {
 const images: (string | { src: string; caption?: string; type?: string })[] = alternateImages(data.mediaItems || []);
 const leftCount = Math.floor((images.length - 1) / 2);
 const previewImage = images[leftCount];
+
+const allMedia = await import.meta.glob<{ default: ImageMetadata | string }>("/src/media/projects/*.{jpg,jpeg,png,webp,svg,avif}");;
+
+const processedMedia = await Promise.all(
+  images.map(async (mediaItem) => {
+    const isString = typeof mediaItem === "string";
+    const src = isString ? mediaItem : mediaItem.src;
+    const type = isString ? 'image' : mediaItem.type?.toLowerCase() || 'image';
+    
+    if (type === 'video') {
+      return {
+        type: 'video',
+        src: src,
+        caption: isString ? undefined : mediaItem.caption
+      };
+    }
+    
+    const module = allMedia[src];
+    if (!module) {
+      console.warn(`Media file not found: ${src}`);
+      return null;
+    }
+
+    const loadedModule = await module();
+    return {
+      type: 'image',
+      src: loadedModule.default,
+      caption: isString ? undefined : mediaItem.caption
+    }
+  })
+).then(items => items.filter(Boolean) as Array <{
+  type: string;
+  src: ImageMetadata | string;
+  caption?: string;
+}>);
+
 ---
 
 <li class="mb-6">
   <div
     id={"slider-" + project.slug}
     class="slider w-screen relative inset-x-1/2 mx-[-50vw] overflow-hidden flex"
-    data-images={JSON.stringify(images)}
     data-center-index={leftCount}
     style="height: 25vh;"
   >
@@ -46,14 +82,14 @@ const previewImage = images[leftCount];
         style="will-change: transform; transform-origin: center center;"
       >
         {
-          images.map((image, i) => (
+          processedMedia.map((media, i) => (
             <figure 
               class="relative flex mx-2 transition-opacity duration-300 h-full shrink-0"
               style={i !== leftCount ? "opacity: 0; pointer-events: none;" : "opacity: 1;"}
             >
-              {typeof image !== "string" && image.type === "video" ? (
+              {media.type === "video" ? (
                 <video
-                  src={typeof image === "string" ? image : image.src}
+                  src={media.src as string}
                   muted
                   autoplay
                   loop
@@ -63,18 +99,19 @@ const previewImage = images[leftCount];
                   style="display: block;"
                 ></video>
               ) : (
-                <img
-                  src={typeof image === "string" ? image : image.src}
+                <Image
+                  src={media.src as ImageMetadata}
                   alt={data.title}
-                  class="object-contain h-full"
-                  style="display: block;"
+                  class="object-contain h-full max-w-none"
+                  style="display: block; width: auto; height: 100%;"
+                  loading="lazy"
                 />
               )}
               
-              {typeof image !== "string" && image.caption && (
+              {media.caption && (
                 <figcaption
                   class="relative ml-2 mt-auto text-s inline-block caption-toggle select-none opacity-40 max-w-30 text-wrap"
-                  data-caption={image.caption}
+                  data-caption={media.caption}
                 >
                   [...]
                 </figcaption>
