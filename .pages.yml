@@ -111,3 +111,23 @@ content:
           - name: url
             label: URL (optional)
             type: string
+      - name: experience
+        label: Experience
+        type: object
+        list: true
+        fields:
+          - name: name
+            label: Company Name
+            type: string
+            required: true
+          - name: city
+            label: City
+            type: string
+            required: true
+          - name: url
+            label: URL (optional)
+            type: string
+          - name: year
+            label: Year(s)
+            type: string
+            help: "e.g., '2025—' or '2023-2024'"
