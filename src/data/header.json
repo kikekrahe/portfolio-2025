@@ -26,5 +26,13 @@
       "name": "Filmhuis Lumen",
       "url": null
     }
+  ],
+  "experience": [
+    {
+      "name": "MURPH",
+      "city": "Madrid",
+      "url": "https://murph.eu",
+      "year": "2025—"
+    }
   ]
 }

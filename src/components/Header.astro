@@ -1,5 +1,5 @@
 ---
-import headerData from '../data/header.json';
+import headerDataRaw from '../data/header.json';
 
 type ContactItem = {
     label: string;
@@ -11,6 +11,23 @@ type Client = {
     name: string;
     url: string | null;
 };
+
+type Experience = {
+    name: string;
+    city: string;
+    url: string | null;
+    year: string;
+};
+
+interface HeaderData {
+    name: string;
+    tagline: string;
+    contact: ContactItem[];
+    clients: Client[];
+    experience: Experience[]; // This tells TS exactly what to expect
+}
+
+const headerData = headerDataRaw as HeaderData;
 ---
 
 <div class="relative flex flex-col gap-4">
@@ -36,6 +53,21 @@ type Client = {
                     ) : (
                         <p>{client.name}</p>
                     )}
+                </li>
+            ))}
+        </ul>
+    </div>
+    <div>
+        <p class="text-xs">Experience</p>
+        <ul>
+            {headerData.experience.map((exp) => (
+                <li>
+                    {exp.url ? (
+                        <a href={exp.url}>{exp.name}</a>
+                    ) : (
+                        <span>{exp.name}</span>
+                    )}
+                    <span>({exp.year}) ({exp.city})</span>
                 </li>
             ))}
         </ul>
