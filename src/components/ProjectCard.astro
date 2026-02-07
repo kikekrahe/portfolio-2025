@@ -30,7 +30,9 @@ const images: (string | { src: string; caption?: string; type?: string })[] = al
 const leftCount = Math.floor((images.length - 1) / 2);
 const previewImage = images[leftCount];
 
-const allMedia = await import.meta.glob<{ default: ImageMetadata | string }>("/src/media/projects/*.{jpg,jpeg,png,webp,svg,avif}");;
+const allMedia = import.meta.glob<{ default: ImageMetadata | string }>(
+  "/src/media/projects/*.{jpg,jpeg,png,webp,svg,avif,mp4,webm,mov}"
+);
 
 const processedMedia = await Promise.all(
   images.map(async (mediaItem) => {
@@ -38,23 +40,25 @@ const processedMedia = await Promise.all(
     const src = isString ? mediaItem : mediaItem.src;
     const type = isString ? 'image' : mediaItem.type?.toLowerCase() || 'image';
     
-    if (type === 'video') {
-      return {
-        type: 'video',
-        src: src,
-        caption: isString ? undefined : mediaItem.caption
-      };
-    }
+    // if (type === 'video') {
+    //   return {
+    //     type: 'video',
+    //     src: src,
+    //     caption: isString ? undefined : mediaItem.caption
+    //   };
+    // }
     
     const module = allMedia[src];
+
     if (!module) {
       console.warn(`Media file not found: ${src}`);
       return null;
     }
 
     const loadedModule = await module();
+    
     return {
-      type: 'image',
+      type: type,
       src: loadedModule.default,
       caption: isString ? undefined : mediaItem.caption
     }

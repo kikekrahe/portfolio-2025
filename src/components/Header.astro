@@ -1,29 +1,43 @@
 ---
+import headerData from '../data/header.json';
 
+type ContactItem = {
+    label: string;
+    url: string;
+    display: string;
+};
+
+type Client = {
+    name: string;
+    url: string | null;
+};
 ---
 
 <div class="relative flex flex-col gap-4">
     <div>
-        <p>Enrique Krahe</p>
-        <p>Graphic designer based in Madrid.</p>
+        <p>{headerData.name}</p>
+        <p>{headerData.tagline}</p>
     </div>
     <div>
         <p class="text-xs">Contact</p>
-        <p><a href="https://www.instagram.com/enrikrahe/">@enrikrahe</a></p>
-        <p><a href="mailto:enrique-krahe@proton.me">enrique-krahe@proton.me</a></p>
+        {headerData.contact.map((item: ContactItem) => (
+            <p>
+                <a href={item.url}>{item.display}</a>
+            </p>
+        ))}
     </div>
     <div>
         <p class="text-xs">Clients</p>
         <ul>
-            <li>
-                <a href="https://www.instagram.com/dazzzzzzzzed/">DAZZZED Studio</a>
-            </li>
-            <li>
-                <p>Willem de Kooning Academy</p>
-            </li>
-            <li>
-                <p>Filmhuis Lumen</p>
-            </li>
+            {headerData.clients.map((client: Client) => (
+                <li>
+                    {client.url ? (
+                        <a href={client.url}>{client.name}</a>
+                    ) : (
+                        <p>{client.name}</p>
+                    )}
+                </li>
+            ))}
         </ul>
         <div>
             <button id="size-toggle" class="absolute right-0 bottom-0 hover:opacity-60 transition-opacity cursor-pointer">M</button>

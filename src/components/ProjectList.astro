@@ -2,7 +2,17 @@
 import { getCollection } from "astro:content"
 import ProjectCard from "./ProjectCard.astro"
 
-const projects = await getCollection("projects");
+const projects = (await getCollection("projects"))
+    .sort((a, b) => {
+        const orderA = a.data.order ?? 999;
+        const orderB = b.data.order ?? 999;
+        
+        if (orderA === orderB) {
+            return b.data.year - a.data.year; // Descending order by year
+        }
+        
+        return orderA - orderB; // Ascending order by order
+    });
 ---
 
 <ul id="projects">

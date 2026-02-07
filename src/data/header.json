@@ -1,0 +1,30 @@
+{
+  "name": "Enrique Krahe",
+  "tagline": "Graphic designer based in Madrid.",
+  "contact": [
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/enrikrahe/",
+      "display": "@enrikrahe"
+    },
+    {
+      "label": "Email",
+      "url": "mailto:enrique-krahe@proton.me",
+      "display": "enrique-krahe@proton.me"
+    }
+  ],
+  "clients": [
+    {
+      "name": "DAZZZED Studio",
+      "url": "https://www.instagram.com/dazzzzzzzzed/"
+    },
+    {
+      "name": "Willem de Kooning Academy",
+      "url": null
+    },
+    {
+      "name": "Filmhuis Lumen",
+      "url": null
+    }
+  ]
+}

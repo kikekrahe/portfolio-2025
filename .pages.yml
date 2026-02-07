@@ -33,6 +33,12 @@ content:
         label: Year
         type: number
         required: true
+
+      - name: order
+        label: Display Order
+        type: number
+        default: 999
+        help: "Lower numbers appear first. Leave at 999 to sort by year."
       
       - name: mediaItems
         label: Media Items
@@ -60,3 +66,48 @@ content:
         label: Body
         type: rich-text
         required: true
+
+  - name: settings
+    label: Site Settings
+    type: collection
+    path: src/data
+    format: json
+    filename: header.json
+    fields:
+      - name: name
+        label: Your Name
+        type: string
+        required: true
+      
+      - name: tagline
+        label: Tagline
+        type: string
+        required: true
+      
+      - name: contact
+        label: Contact Methods
+        type: object
+        list: true
+        fields:
+          - name: label
+            label: Label
+            type: string
+          - name: url
+            label: URL
+            type: string
+          - name: display
+            label: Display Text
+            type: string
+      
+      - name: clients
+        label: Clients
+        type: object
+        list: true
+        fields:
+          - name: name
+            label: Client Name
+            type: string
+            required: true
+          - name: url
+            label: URL (optional)
+            type: string

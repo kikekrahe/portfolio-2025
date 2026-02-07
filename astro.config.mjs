@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 import react from '@astrojs/react';
 
+import yaml from '@rollup/plugin-yaml';
+
 // https://astro.build/config
 export default defineConfig({
   image: {
@@ -12,7 +14,7 @@ export default defineConfig({
     layout: 'constrained'
   },
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss(), yaml()]
   },
 
   integrations: [react()]
