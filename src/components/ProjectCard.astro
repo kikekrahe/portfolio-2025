@@ -9,7 +9,6 @@ type Props = {
 const { project } = Astro.props;
 const { data } = project;
 
-// Rearrange images to alternate left and right from the center
 type ImageType = string | { type?: string; src: string; caption?: string };
 
 function alternateImages(images: ImageType[]) {
@@ -157,6 +156,13 @@ const processedMedia = await Promise.all(
     let justFinishedResizing = false;
     let isProgrammaticResize = false;
 
+    // Touch handling
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+
+    const isMobile = () => window.innerWidth < 768;
+
     // --- HELPER FUNCTIONS ---
 
     function getSide(e) {
@@ -226,7 +232,6 @@ const processedMedia = await Promise.all(
     function updateSlider(smooth = true) {
         currentTransformX = calculateCenterPosition();
         
-        // Disable transitions during programmatic resize to prevent flicker
         if (isProgrammaticResize) {
             slides.style.transition = "none";
         } else if (smooth) {
@@ -248,57 +253,125 @@ const processedMedia = await Promise.all(
         });
     }
 
-    // --- EVENT LISTENERS ---
+    // --- TOUCH EVENTS (MOBILE) ---
 
-    // RESIZE HANDLING WITH SMOOTH CENTERING
-    resizeHandle.addEventListener("mousedown", (e) => {
+    slider.addEventListener("touchstart", (e) => {
+      if (e.target.closest('figcaption')) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = false;
+    });
+
+    slider.addEventListener("touchmove", (e) => {
+      if (!expanded) return;
+
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      const deltaX = Math.abs(touchX - touchStartX);
+      const deltaY = Math.abs(touchY - touchStartY);
+
+      if (deltaX > deltaY && deltaX > 10) {
+        isSwiping = true;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    slider.addEventListener("touchend", (e) => {
+      if (!isSwiping) {
+        // Tap to expand or toggle caption
+        if (!expanded) {
+          showAllImages(true);
+          setTimeout(() => updateSlider(true), 50);
+        } else if (e.target.closest('figcaption')) {
+          const figcaption = e.target.closest('figcaption');
+          if (figcaption.textContent === "[...]") {
+            figcaption.textContent = `[${figcaption.getAttribute("data-caption")}]`;
+          } else {
+            figcaption.textContent = "[...]";
+          }
+        }
+        return;
+      }
+
+      const touchX = e.changedTouches[0].clientX;
+      const deltaX = touchX - touchStartX;
+
+      if (Math.abs(deltaX) > 50) {
+        if (deltaX > 0) {
+          index = (index - 1 + totalImages) % totalImages;
+        } else {
+          index = (index + 1) % totalImages;
+        }
+        updateSlider(true);
+      }
+
+      isSwiping = false;
+    });
+
+    // --- RESIZE HANDLING (BOTH MOUSE & TOUCH) ---
+
+    function startResize(y) {
       isResizing = true;
-      startY = e.clientY;
+      startY = y;
       startHeight = slider.offsetHeight;
       document.body.style.cursor = "ns-resize";
       document.body.style.userSelect = "none";
-      
       slides.style.transition = "none";
-      
-      e.preventDefault();
-    });
+    }
 
-    document.addEventListener("mousemove", (e) => {
+    function doResize(y) {
       if (!isResizing) return;
       
-      const dy = e.clientY - startY;
+      const dy = y - startY;
       const vh = window.innerHeight;
-      
-      // Use consistent viewport-based limits
-      const minHeight = vh * 0.15; // ~S size
-      const maxHeight = vh * 0.50; // Slightly above XL
+      const minHeight = vh * 0.15;
+      const maxHeight = vh * 0.65;
       const newHeight = Math.max(minHeight, Math.min(startHeight + dy, maxHeight));
       
       slider.style.height = `${newHeight}px`;
+      requestAnimationFrame(() => updateSlider(false));
+    }
 
-      requestAnimationFrame(() => {
-        updateSlider(false);
-      });
+    function endResize() {
+      if (!isResizing) return;
+      
+      isResizing = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      justFinishedResizing = true;
+      setTimeout(() => { justFinishedResizing = false; }, 100);
+
+      slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+      setTimeout(() => updateSlider(true), 10);
+    }
+
+    resizeHandle.addEventListener("mousedown", (e) => {
+      startResize(e.clientY);
+      e.preventDefault();
     });
 
-    document.addEventListener("mouseup", () => {
+    resizeHandle.addEventListener("touchstart", (e) => {
+      startResize(e.touches[0].clientY);
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener("mousemove", (e) => doResize(e.clientY));
+    
+    document.addEventListener("touchmove", (e) => {
       if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-
-        justFinishedResizing = true;
-        setTimeout(() => { justFinishedResizing = false; }, 100);
-
-        slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
-
-        setTimeout(() => updateSlider(true), 10);
+        doResize(e.touches[0].clientY);
+        e.preventDefault();
       }
-    });
+    }, { passive: false });
+
+    document.addEventListener("mouseup", endResize);
+    document.addEventListener("touchend", endResize);
+
+    // --- DESKTOP MOUSE INTERACTIONS ---
 
     let resizeTimeout;
     const resizeObserver = new ResizeObserver(() => {
-        // Skip updates during manual or programmatic resize
         if (!isResizing && !isProgrammaticResize) {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
@@ -308,11 +381,8 @@ const processedMedia = await Promise.all(
     });
     resizeObserver.observe(slider);
 
-    // SLIDER INTERACTION
     slider.addEventListener("click", (e) => {
-        if (justFinishedResizing) {
-          return;
-        }
+        if (justFinishedResizing || isMobile()) return;
 
         if (!expanded) {
             showAllImages(true);
@@ -341,8 +411,8 @@ const processedMedia = await Promise.all(
         updateSlider(true);
     });
 
-    // CURSOR MANAGEMENT    
     slider.addEventListener("mousemove", (e) => {
+        if (isMobile()) return;
         if (!expanded) slider.style.cursor = "crosshair";
         else slider.style.cursor = getSide(e) === "left" ? "w-resize" : "e-resize";
     });
@@ -366,21 +436,14 @@ const processedMedia = await Promise.all(
         }
     });
 
-    // Listen for global size changes with proper transition handling
     window.addEventListener("sliderSizeChange", (e) => {
         const newHeight = e.detail.height;
         
-        // Set flag to prevent flicker
         isProgrammaticResize = true;
-        
-        // Disable transform transitions during height animation
         slides.style.transition = "none";
-        
-        // Apply smooth height transition
         slider.style.transition = "height 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
         slider.style.height = `${newHeight}px`;
         
-        // Continuously update position during height animation
         let animationFrameId;
         let startTime = Date.now();
         const animationDuration = 300;
@@ -388,11 +451,9 @@ const processedMedia = await Promise.all(
         const updateDuringAnimation = () => {
             updateSlider(false);
             
-            // Continue updating until animation is complete
             if (Date.now() - startTime < animationDuration) {
                 animationFrameId = requestAnimationFrame(updateDuringAnimation);
             } else {
-                // Animation complete, cleanup
                 isProgrammaticResize = false;
                 slider.style.transition = "";
                 slides.style.transition = "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
@@ -400,7 +461,6 @@ const processedMedia = await Promise.all(
             }
         };
         
-        // Start the update loop
         requestAnimationFrame(updateDuringAnimation);
     });
 

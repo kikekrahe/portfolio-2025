@@ -1,6 +1,6 @@
 media: 
   input: src/media
-  output: /media
+  output: /src/media
   extensions: 
     - jpg
     - jpeg

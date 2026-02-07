@@ -34,28 +34,63 @@
 <script is:inline>
     document.addEventListener("DOMContentLoaded", () => {
         const sizeButton = document.getElementById("size-toggle");
-        const sizes = ["S", "M", "L", "XL"];
-        const sizeHeights = {
-            "S": 180,
-            "M": 300,
-            "L": 450,
-            "XL": 580
-        };
+        const isMobile = () => window.innerWidth < 768;
+        
+        // Mobile: S/M only, Desktop: S/M/L/XL
+        const getSizes = () => isMobile() ? ["S", "M"] : ["S", "M", "L", "XL"];
+        
+        function getSizeHeights() {
+            const vh = window.innerHeight;
+            
+            if (isMobile()) {
+                return {
+                    "S": Math.round(vh * 0.30),
+                    "M": Math.round(vh * 0.45)
+                };
+            }
+            
+            return {
+                "S": 180,
+                "M": 300,
+                "L": 450,
+                "XL": 580
+            };
+        }
 
-        let currentSizeIndex = 1;
+        let currentSizeIndex = 1; // Start at M
 
-        sizeButton?.addEventListener("click", (e) => {
-            e.preventDefault();
-            currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
-            const newSize = sizes[currentSizeIndex];
-            sizeButton.textContent = newSize;
+        function updateButton() {
+            const sizes = getSizes();
+            const sizeHeights = getSizeHeights();
+            const currentSize = sizes[currentSizeIndex];
+            
+            sizeButton.textContent = currentSize;
 
             window.dispatchEvent(new CustomEvent("sliderSizeChange", {
                 detail: {
-                    size: newSize,
-                    height: sizeHeights[newSize]
+                    size: currentSize,
+                    height: sizeHeights[currentSize]
                 }
             }));
+        }
+
+        sizeButton?.addEventListener("click", (e) => {
+            e.preventDefault();
+            const sizes = getSizes();
+            currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+            updateButton();
+        });
+
+        // Handle resize between mobile/desktop
+        let lastIsMobile = isMobile();
+        window.addEventListener("resize", () => {
+            const nowMobile = isMobile();
+            if (lastIsMobile !== nowMobile) {
+                // Reset to M when switching between mobile/desktop
+                currentSizeIndex = 1;
+                lastIsMobile = nowMobile;
+                updateButton();
+            }
         });
     });
 </script>
