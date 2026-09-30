@@ -2,6 +2,7 @@
 title: Graduation Show Identity
 categories: Creative Direction
 year: 2025
+order: 999
 mediaItems:
   - type: Image
     src: /src/media/projects/gradshow_01-2000w.avif
@@ -18,5 +19,7 @@ mediaItems:
     src: /src/media/projects/gradshow_04-2000w.avif
   - type: Image
     src: /src/media/projects/gradshow_05-2000w.avif
+  - type: Image
+    src: /src/media/Poster1 1.webp
 ---
 Visual identity for the Willem de Kooning Academy's 2025 graduation show. Following the concept of expansion and growing beyond the confines of academic efforts. Additionally giving voice to more raw, experimental approaches so often found in student's works.
