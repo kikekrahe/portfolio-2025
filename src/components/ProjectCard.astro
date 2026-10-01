@@ -31,7 +31,7 @@ const leftCount = Math.floor((images.length - 1) / 2);
 const previewImage = images[leftCount];
 
 const allMedia = import.meta.glob<{ default: ImageMetadata | string }>(
-  "/src/media/projects/*.{jpg,jpeg,png,webp,svg,avif,mp4,webm,mov}"
+  "/src/media/**/*.{jpg,jpeg,png,gif,webp,svg,avif,mp4,webm,mov}"
 );
 
 const processedMedia = await Promise.all(
