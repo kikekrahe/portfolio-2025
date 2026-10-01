@@ -9,13 +9,13 @@ mediaItems:
   - type: Image
     src: /src/media/fqs 2025-10-10 111048.423 1.webp
   - type: Image
-    src: /src/media/projects/Companion-33 Large.jpeg
+    src: /src/media/Frame 7.webp
   - type: Image
-    src: /src/media/projects/Companion-07-2 Large.jpeg
+    src: /src/media/Frame 11.webp
   - type: Image
-    src: /src/media/projects/Companion-17-1 Large.jpeg
+    src: /src/media/Frame 9.webp
   - type: Image
-    src: /src/media/projects/Companion-17-2 Large.jpeg
+    src: /src/media/Frame 12.webp
   - type: Image
     src: /src/media/Banner_EnriqueKrahe_Bleed1mm_page-0001 2.webp
   - type: Image
