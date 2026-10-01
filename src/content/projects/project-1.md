@@ -2,6 +2,7 @@
 title: Alg.ia
 categories: Publication
 year: 2024
+order: 999
 mediaItems:
   - type: Image
     src: /src/media/projects/algia_0001-1200w.avif
@@ -9,6 +10,10 @@ mediaItems:
     src: /src/media/projects/algia_0004-1200w.avif
   - type: Image
     src: /src/media/projects/algia_0002-1200w.avif
+  - type: Image
+    src: /src/media/7 2.webp
+  - type: Image
+    src: /src/media/100000_02 1.webp
   - type: Image
     src: /src/media/projects/algia_0003-1200w.avif
   - type: Image
